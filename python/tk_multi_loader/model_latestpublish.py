@@ -276,6 +276,7 @@ class SgLatestPublishModel(ShotgunModel):
             self._publish_type_field = "tank_type"
 
         publish_fields = [self._publish_type_field] + constants.PUBLISHED_FILES_FIELDS
+        publish_fields += app.get_setting("publish_fields")
 
         # first add our folders to the model
         # make gc happy by keeping handle to all items
