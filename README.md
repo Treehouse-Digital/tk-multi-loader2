@@ -4,9 +4,10 @@ to:
 
 ```yaml
 apps.tk-multi-loader2.location:
-  type: git
-  path: https://github.com/Treehouse-Digital/tk-multi-loader2.git
-  version: 1.25.4-th.1.0.0
+  type: github_release
+  organization: Treehouse-Digital
+  repository: tk-multi-loader2
+  version: 1.25.4+th.1.0.0
 ```
 
 ## Developing
@@ -18,42 +19,7 @@ cloned down via
 git clone --recurse-submodule ...
 ```
 
-### Syncing with SG
-
-Then `cd` into this repo and add [shotgunsoftware/tk-multi-loader2](https://github.com/shotgunsoftware/tk-multi-loader2)
-as the `upstream` remote, which we'll then use as pull only (one-time setup):
-
-```bash
-cd /path/to/tk-multi-loader2
-git remote add upstream git@github.com:shotgunsoftware/tk-multi-loader2.git
-git remote set-url --push upstream PUSH-NOT-ALLOWED
-git remote update
-```
-
-Afterwards, merge-and-squash our changes onto latest version tag, suppose new
-SG/upstream version tag `v1.2.3` appears, before tagging and pushing both SG's tag,
-our updated `master` and our Rez-compatible tag back to our fork (origin)
-
-```bash
-git checkout -B master origin/master  # Force sync with our GitHub fork
-git merge --squash v1.2.3 && git commit --no-edit
-git tag 1.2.3-th.1.0.0  # Rez-compatible version number
-git push origin master v1.2.3 1.2.3-th.1.0.0  # Push branch, SG tag and our tag
-```
-
-Optionally, then go to https://github.com/Treehouse-Digital/tk-multi-loader2/releases/new and
-create a new release with the `1.2.3-th.1.0.0` tag.
-
-### Additional changes
-
-Each change should branch off SG's `v#.#.#` tag as per above. The branch should be
-named `th-#.#.#` i.e. `th-0.23.2` when branching off SG `v0.23.2`.
-
-`master` branch should point to the latest tip of `th-#.#.#` where possible.
-
-Any additional changes can then be made and pushed to the `th-#.#.#` branch
-(and `master` if latest) and released as using sem-ver version numbering after a
-`-th.` segment. Be sure to update the changelog below.
+See release documentations there about developing. Be sure to update the changelog below.
  
 ## Changelog
 
