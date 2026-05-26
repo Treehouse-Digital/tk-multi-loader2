@@ -1,0 +1,28 @@
+name: pre-commit
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  pre-commit:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v6
+    - uses: actions/setup-python@v6
+      with:
+        python-version: '3.11'
+    - run: git remote update
+
+    - uses: pre-commit/action@v3.0.1
+      name: Pull Request
+      if: github.event_name == 'pull_request'
+      with:
+        extra_args: >
+          --from-ref ${{ github.event.pull_request.base.sha }}
+          --to-ref pull/${{ github.event.pull_request.number }}/merge
+
+    - uses: pre-commit/action@v3.0.1
+      name: Push (main branch)
+      if: github.event_name == 'push'

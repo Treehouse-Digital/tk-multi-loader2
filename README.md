@@ -7,17 +7,8 @@ apps.tk-multi-loader2.location:
   type: github_release
   organization: Treehouse-Digital
   repository: tk-multi-loader2
-  version: 1.25.6+th.1.0.0
+  version: 1.25.6-th.1.0.0
 ```
-
-## Changelog
-
-These track the only functional differences between SG/upstream and our own fork.
-
-### Added
-
-- `publish_fields` settings for additional entity fields to fetch.
-
 
 ----
 
