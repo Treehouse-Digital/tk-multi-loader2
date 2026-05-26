@@ -142,6 +142,14 @@ configuration:
         allows_empty: True
         default_value: []
 
+    publish_fields:
+        type: list
+        description: Additional published file entity fields to fetch on top of constants.PUBLISHED_FILES_FIELDS
+        values:
+            type: str
+        allows_empty: True
+        default_value: []
+
 
 # this app works in all engines - it does not contain
 # any host application specific commands

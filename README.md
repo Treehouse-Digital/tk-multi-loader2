@@ -1,3 +1,26 @@
+Custom fork of [shotgunsoftware/tk-multi-loader2](https://github.com/shotgunsoftware/tk-multi-loader2). Use by editing
+[tk-config-default2:env/includes/app_locations.yml](https://github.com/shotgunsoftware/tk-config-default2/blob/master/env/includes/app_locations.yml)
+to:
+
+```yaml
+apps.tk-multi-loader2.location:
+  type: github_release
+  organization: Treehouse-Digital
+  repository: tk-multi-loader2
+  version: 1.25.6+th.1.0.0
+```
+
+## Changelog
+
+These track the only functional differences between SG/upstream and our own fork.
+
+### Added
+
+- `publish_fields` settings for additional entity fields to fetch.
+
+
+----
+
 [![Supported VFX Platform: CY2022 - CY2026](https://img.shields.io/badge/VFX_Reference_Platform-CY2022_|_CY2023_|_CY2024_|_CY2025_|_CY2026-blue)](http://www.vfxplatform.com/ "Supported VFX Reference Platform versions")
 [![Supported Python versions: 3.9, 3.10, 3.11, 3.13](https://img.shields.io/badge/Python-3.9_|_3.10_|_3.11_|_3.13-blue?logo=python&logoColor=f5f5f5)](https://www.python.org/ "Supported Python versions")
 

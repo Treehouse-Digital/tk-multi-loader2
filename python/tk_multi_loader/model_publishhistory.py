@@ -65,6 +65,7 @@ class SgPublishHistoryModel(ShotgunModel):
 
         # fields to pull down
         fields = [publish_type_field] + constants.PUBLISHED_FILES_FIELDS
+        fields += app.get_setting("publish_fields")
 
         # when we filter out which other publishes are associated with this one,
         # to effectively get the "version history", we look for items
