@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 These track the only functional differences between SG/upstream and our own fork.
 
 
+## [1.25.6-th.1.0.1] - 2026-05-26
+
+### Fixed
+
+- Unnecessary executable permissions
+- Removed conflicting custom pre-commit CI hook.
+
+
 ## [1.25.6-th.1.0.0] - 2026-05-26
 
 ### Added
