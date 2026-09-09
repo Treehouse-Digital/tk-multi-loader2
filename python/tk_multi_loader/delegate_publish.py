@@ -1,7 +1,9 @@
-import sgtk
+from typing import Any
 
+import sgtk
 from sgtk.platform.qt import QtCore, QtGui
 
+from .model_item_data import get_item_data
 from .model_latestpublish import SgLatestPublishModel
 
 # import the shotgun_model and view modules from the shotgun utils framework
@@ -127,6 +129,9 @@ class PublishDelegate(shotgun_view.EditSelectedWidgetDelegate):
         self._action_manager = action_manager
         self._view = view
         self._sub_items_mode = False
+        self._format_hook = sgtk.platform.current_bundle().create_hook_instance(
+            "format_publishes_hook"
+        )
         shotgun_view.EditSelectedWidgetDelegate.__init__(self, view)
 
     def set_sub_items_mode(self, enabled):
@@ -214,3 +219,30 @@ class PublishDelegate(shotgun_view.EditSelectedWidgetDelegate):
             self._format_folder(model_index, widget)
         else:
             self._format_publish(model_index, widget)
+
+    @property
+    def _format_folder_callback(self) -> callable[[dict, Any], tuple[str, str]]:
+        raise NotImplementedError
+
+    @property
+    def _format_publish_callback(self) -> callable[[dict, str], tuple[str, str]]:
+        raise NotImplementedError
+
+    def _format_folder(
+        self, model_index: QtCore.QModelIndex, widget: PublishWidget
+    ) -> None:
+        """Formats the associated widget as a folder item."""
+        sg_data, field_value = get_item_data(model_index)
+        header_text, details_text = self._format_folder_callback(sg_data, field_value)
+        widget.set_text(header_text, details_text)
+
+    def _format_publish(
+        self, model_index: QtCore.QModelIndex, widget: PublishWidget
+    ) -> None:
+        """Formats the associated widget as a publish."""
+        sg_data = shotgun_model.get_sg_data(model_index)
+        pub_type_str = shotgun_model.get_sanitized_data(
+            model_index, SgLatestPublishModel.PUBLISH_TYPE_NAME_ROLE
+        )
+        header_text, details_text = self._format_publish_callback(sg_data, pub_type_str)
+        widget.set_text(header_text, details_text)
