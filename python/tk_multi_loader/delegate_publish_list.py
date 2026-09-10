@@ -9,19 +9,9 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from typing import Any
+from typing import Callable
 
-import sgtk
 from sgtk.platform.qt import QtCore
-
-# import the shotgun_model and view modules from the shotgun utils framework
-shotgun_model = sgtk.platform.import_framework(
-    "tk-framework-shotgunutils", "shotgun_model"
-)
-shotgun_globals = sgtk.platform.import_framework(
-    "tk-framework-shotgunutils", "shotgun_globals"
-)
-shotgun_view = sgtk.platform.import_framework("tk-framework-qtwidgets", "views")
 
 from .ui.widget_publish_list import Ui_PublishListWidget
 from .delegate_publish import PublishWidget, PublishDelegate
@@ -75,11 +65,15 @@ class SgPublishListDelegate(PublishDelegate):
         return PublishListWidget(parent)
 
     @property
-    def _format_folder_callback(self) -> callable[[dict, Any], tuple[str, str]]:
+    def _format_folder_callback(
+        self,
+    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
         return self._format_hook.format_list_folder
 
     @property
-    def _format_publish_callback(self) -> callable[[dict, str], tuple[str, str]]:
+    def _format_publish_callback(
+        self,
+    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
         return self._format_hook.format_list_publish
 
     def sizeHint(self, style_options, model_index):

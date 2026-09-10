@@ -41,7 +41,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
         assert callable(self.thumb_delegate._format_publish)
 
     @contextlib.contextmanager
-    def mocked_model_item_data_widget(self, module, field_value):
+    def mocked_model_item_data_widget(self, hook, field_value):
         mock_model_index = mock.MagicMock()
         mock_widget = mock.MagicMock()
         mock_widget.set_text = mock.MagicMock()
@@ -91,17 +91,18 @@ class TestDelegatesPublishFormatting(AppTestBase):
             "version_number": 2,
         }
 
-        original_get_sanitized_data = module.shotgun_model.get_sanitized_data
+        original_get_sanitized_data = hook.shotgun_model.get_sanitized_data
+        model_cls = hook.tk_multi_loader.model_latestpublish.SgLatestPublishModel
 
         def mock_get_sanitized_data(model_index, role):
             return (
                 pub_type_str
                 if model_index is mock_model_index
-                and role == module.SgLatestPublishModel.PUBLISH_TYPE_NAME_ROLE
+                and role == model_cls.PUBLISH_TYPE_NAME_ROLE
                 else original_get_sanitized_data(model_index)
             )
 
-        original_get_sg_data = module.shotgun_model.get_sg_data
+        original_get_sg_data = hook.shotgun_model.get_sg_data
 
         def mock_get_sg_data(model_index):
             return (
@@ -110,7 +111,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
                 else original_get_sg_data(model_index)
             )
 
-        original_get_item_data = module.model_item_data.get_item_data
+        original_get_item_data = hook.tk_multi_loader.model_item_data.get_item_data
 
         def mock_get_item_data(model_index):
             return (
@@ -121,10 +122,12 @@ class TestDelegatesPublishFormatting(AppTestBase):
 
         with (
             mock.patch.object(
-                module.model_item_data, "get_item_data", mock_get_item_data
+                hook.tk_multi_loader.model_item_data,
+                "get_item_data",
+                mock_get_item_data,
             ),
             mock.patch.multiple(
-                module.shotgun_model,
+                hook.shotgun_model,
                 get_sg_data=mock_get_sg_data,
                 get_sanitized_data=mock_get_sanitized_data,
             ),
@@ -147,7 +150,8 @@ class TestDelegatesPublishFormatting(AppTestBase):
         publish_main = "<b>aaa_00010, F004_C003_0228F8</b> Version 002"
         publish_small = "<span style='color:#2C93E2'>Flame Render</span> by Manne Ohrstrom at 2015-03-03 10:33"
 
-        with self.mocked_model_item_data_widget(self.list_module, field_value) as (
+        list_hook = self.list_delegate._format_hook
+        with self.mocked_model_item_data_widget(list_hook, field_value) as (
             model_index,
             mock_widget,
         ):
@@ -157,7 +161,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
         assert main_text == folder_main
         assert small_text == folder_small
 
-        with self.mocked_model_item_data_widget(self.list_module, field_value) as (
+        with self.mocked_model_item_data_widget(list_hook, field_value) as (
             model_index,
             mock_widget,
         ):
@@ -179,7 +183,8 @@ class TestDelegatesPublishFormatting(AppTestBase):
         publish_main = "aaa_00010, F004_C003_0228F8 v2"
         publish_small = "Flame Render"
 
-        with self.mocked_model_item_data_widget(self.thumb_module, field_value) as (
+        thumb_hook = self.thumb_delegate._format_hook
+        with self.mocked_model_item_data_widget(thumb_hook, field_value) as (
             model_index,
             mock_widget,
         ):
@@ -189,7 +194,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
         assert main_text == folder_main
         assert small_text == folder_small
 
-        with self.mocked_model_item_data_widget(self.thumb_module, field_value) as (
+        with self.mocked_model_item_data_widget(thumb_hook, field_value) as (
             model_index,
             mock_widget,
         ):

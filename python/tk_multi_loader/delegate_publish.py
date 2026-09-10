@@ -1,9 +1,8 @@
-from typing import Any
+from typing import Callable
 
 import sgtk
 from sgtk.platform.qt import QtCore, QtGui
 
-from .model_item_data import get_item_data
 from .model_latestpublish import SgLatestPublishModel
 
 # import the shotgun_model and view modules from the shotgun utils framework
@@ -126,11 +125,17 @@ class PublishDelegate(shotgun_view.EditSelectedWidgetDelegate):
         :param view: The view where this delegate is being used
         :param action_manager: Action manager instance
         """
+        # Local import to avoid circular dependency issues
+        from .hooks.format_publishes import FormatPublishes
+
         self._action_manager = action_manager
         self._view = view
         self._sub_items_mode = False
-        self._format_hook = sgtk.platform.current_bundle().create_hook_instance(
-            "format_publishes_hook"
+
+        app: sgtk.platform.Application = sgtk.platform.current_bundle()
+        self._format_hook = app.create_hook_instance(
+            app.get_setting("format_publishes_hook"),
+            base_class=FormatPublishes,
         )
         shotgun_view.EditSelectedWidgetDelegate.__init__(self, view)
 
@@ -221,28 +226,31 @@ class PublishDelegate(shotgun_view.EditSelectedWidgetDelegate):
             self._format_publish(model_index, widget)
 
     @property
-    def _format_folder_callback(self) -> callable[[dict, Any], tuple[str, str]]:
+    def _format_folder_callback(
+        self,
+    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
         raise NotImplementedError
 
     @property
-    def _format_publish_callback(self) -> callable[[dict, str], tuple[str, str]]:
+    def _format_publish_callback(
+        self,
+    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
         raise NotImplementedError
 
     def _format_folder(
         self, model_index: QtCore.QModelIndex, widget: PublishWidget
     ) -> None:
         """Formats the associated widget as a folder item."""
-        sg_data, field_value = get_item_data(model_index)
-        header_text, details_text = self._format_folder_callback(sg_data, field_value)
+        header_text, details_text = self._format_folder_callback(
+            model_index, show_sub_items=bool(self._sub_items_mode)
+        )
         widget.set_text(header_text, details_text)
 
     def _format_publish(
         self, model_index: QtCore.QModelIndex, widget: PublishWidget
     ) -> None:
         """Formats the associated widget as a publish."""
-        sg_data = shotgun_model.get_sg_data(model_index)
-        pub_type_str = shotgun_model.get_sanitized_data(
-            model_index, SgLatestPublishModel.PUBLISH_TYPE_NAME_ROLE
+        header_text, details_text = self._format_publish_callback(
+            model_index, show_sub_items=bool(self._sub_items_mode)
         )
-        header_text, details_text = self._format_publish_callback(sg_data, pub_type_str)
         widget.set_text(header_text, details_text)
