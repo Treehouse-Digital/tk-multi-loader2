@@ -8,6 +8,50 @@ shotgun_globals = sgtk.platform.import_framework(
 
 
 class FormatPublishes(sgtk.get_hook_baseclass()):
+    r"""
+
+    example ``sg_data``::
+
+        {'code': 'aaa_00010_F004_C003_0228F8_v000.%04d.dpx',
+        'created_at': 1425378837.0,
+        'created_by': {'id': 42, 'name': 'Manne Ohrstrom', 'type': 'HumanUser'},
+        'created_by.HumanUser.image': 'https://...',
+        'description': 'testing testing, 1,2,3',
+        'entity': {'id': 1660, 'name': 'aaa_00010', 'type': 'Shot'},
+        'id': 1340,
+        'image': 'https:...',
+        'name': 'aaa_00010, F004_C003_0228F8',
+        'path': {'content_type': 'image/dpx',
+                'id': 24116,
+                'link_type': 'local',
+                'local_path': '/mnt/projects...',
+                'local_path_linux': '/mnt/projects...',
+                'local_path_mac': '/mnt/projects...',
+                'local_path_windows': 'z:\mnt\projects...',
+                'local_storage': {'id': 4,
+                                    'name': 'primary',
+                                    'type': 'LocalStorage'},
+                'name': 'aaa_00010_F004_C003_0228F8_v000.%04d.dpx',
+                'type': 'Attachment',
+                'url': 'file:///mnt/projects...'},
+        'project': {'id': 289, 'name': 'Climp', 'type': 'Project'},
+        'published_file_type': {'id': 53,
+                                'name': 'Flame Render',
+                                'type': 'PublishedFileType'},
+        'task': None,
+        'task.Task.content': None,
+        'task.Task.due_date': None,
+        'task.Task.sg_status_list': None,
+        'task_uniqueness': False,
+        'type': 'PublishedFile',
+        'version': {'id': 6697,
+                    'name': 'aaa_00010_F004_C003_0228F8_v000',
+                    'type': 'Version'},
+        'version.Version.sg_status_list': 'rev',
+        'version_number': 2}
+
+    """
+
     def format_list_publish(self, sg_data: dict, publish_type: str) -> tuple[str, str]:
         """Return formatted main and small text for the given publish folder."""
         main_text = "<b>%s</b>" % (sg_data.get("name") or "Unnamed")
@@ -122,46 +166,6 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
         """Return formatted header and body text for the given publish folder."""
         header_text = ""
         details_text = ""
-
-        # example data:
-
-        # {'code': 'aaa_00010_F004_C003_0228F8_v000.%04d.dpx',
-        #  'created_at': 1425378837.0,
-        #  'created_by': {'id': 42, 'name': 'Manne Ohrstrom', 'type': 'HumanUser'},
-        #  'created_by.HumanUser.image': 'https://...',
-        #  'description': 'testing testing, 1,2,3',
-        #  'entity': {'id': 1660, 'name': 'aaa_00010', 'type': 'Shot'},
-        #  'id': 1340,
-        #  'image': 'https:...',
-        #  'name': 'aaa_00010, F004_C003_0228F8',
-        #  'path': {'content_type': 'image/dpx',
-        #           'id': 24116,
-        #           'link_type': 'local',
-        #           'local_path': '/mnt/projects...',
-        #           'local_path_linux': '/mnt/projects...',
-        #           'local_path_mac': '/mnt/projects...',
-        #           'local_path_windows': 'z:\\mnt\\projects...',
-        #           'local_storage': {'id': 4,
-        #                             'name': 'primary',
-        #                             'type': 'LocalStorage'},
-        #           'name': 'aaa_00010_F004_C003_0228F8_v000.%04d.dpx',
-        #           'type': 'Attachment',
-        #           'url': 'file:///mnt/projects...'},
-        #  'project': {'id': 289, 'name': 'Climp', 'type': 'Project'},
-        #  'published_file_type': {'id': 53,
-        #                          'name': 'Flame Render',
-        #                          'type': 'PublishedFileType'},
-        #  'task': None,
-        #  'task.Task.content': None,
-        #  'task.Task.due_date': None,
-        #  'task.Task.sg_status_list': None,
-        #  'task_uniqueness': False,
-        #  'type': 'PublishedFile',
-        #  'version': {'id': 6697,
-        #              'name': 'aaa_00010_F004_C003_0228F8_v000',
-        #              'type': 'Version'},
-        #  'version.Version.sg_status_list': 'rev',
-        #  'version_number': 2}
 
         # get the name (lighting v3)
         name_str = "Unnamed"
