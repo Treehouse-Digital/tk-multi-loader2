@@ -1,3 +1,10 @@
+# Copyright (c) 2026 Autodesk, Inc.
+#
+# CONFIDENTIAL AND PROPRIETARY
+#
+# This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
+# Source Code License included in this distribution package. See LICENSE.
+
 """Unit test the formatted text of ``SgPublish*Delegate._format_*()``.
 
 This is to ensure we have a reference output to check future refactoring against, so
