@@ -4,6 +4,21 @@
 #
 # This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
+"""Base hook for formatting publishes in the loader.
+
+This is called by the various delegate classes to format the text used for the
+list/thumbnail views.
+
+Having it as a hook allows for customization depending on the context this Loader app is
+running in e.g.:
+
+- An asset library project vs a production VFX project
+- Different DCCs
+- Highlight specific publishes related to current shot/asset
+
+"""
+
+from __future__ import annotations
 
 import datetime
 
@@ -14,7 +29,26 @@ __all__ = ("FormatPublishes",)
 
 
 class FormatPublishes(sgtk.get_hook_baseclass()):
-    """Base hook for formatting."""
+    """Base hook for formatting.
+
+    Uses the exact same code extracted from `tk-multi-loader v1.25.6
+    <https://github.com/shotgunsoftware/tk-multi-loader2/blob/v1.25.6/python/tk_multi_loader>`_:
+
+    - ``delegate_publish_list.py``
+    - ``delegate_publish_thumb.py``
+
+    Notable attributes exposed to help with calculating and formatting publishes:
+
+    - (class-level) ``shotgun_globals``, imported from
+      `tk-framework-shotgunutils.shotgun_globals
+      <https://developers.shotgridsoftware.com/tk-framework-shotgunutils/shotgun_globals.html>`_
+    - (class-level) ``shotgun_model``, imported from
+      `tk-framework-shotgunutils.shotgun_model
+      <https://developers.shotgridsoftware.com/tk-framework-shotgunutils/shotgun_model.html>`_
+    - (instance-level) ``tk_multi_loader``, imported ``tk_multi_loader`` module
+
+
+    """
 
     shotgun_globals = sgtk.platform.import_framework(
         "tk-framework-shotgunutils", "shotgun_globals"
@@ -22,9 +56,11 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
     shotgun_model = sgtk.platform.import_framework(
         "tk-framework-shotgunutils", "shotgun_model"
     )
-    shotgun_view = sgtk.platform.import_framework("tk-framework-qtwidgets", "views")
 
-    def __init__(self, parent):
+    def __init__(
+        self, parent: sgtk.platform.Application | sgtk.platform.Engine
+    ) -> None:
+        """Extend to set the ``tk_multi_loader`` instance attribute."""
         super().__init__(parent)
         self.tk_multi_loader = sgtk.platform.current_bundle().import_module(
             "tk_multi_loader"
@@ -33,13 +69,30 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
     def format_list_publish(
         self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
     ) -> tuple[str, str]:
+        """Get formatted texts for list view of the PublishedFile item at given index.
+
+        ``show_sub_items`` is whether the "Show items in subfolders" checkbox is
+        currently checked in the dialog.
+
+        .. code-block:: text
+
+            Layout of the list view in respect to returned (main_text, small_text):
+             -------------------------------------------------
+            | Thumbnail | main_text                           |
+            |           | small_text                          |
+             -------------------------------------------------
+             -------------------------------------------------
+            | Thumbnail | main_text                           |
+            |           | small_text                          |
+             -------------------------------------------------
+
+        """
         sg_data = self.shotgun_model.get_sg_data(model_index)
         publish_type = self.shotgun_model.get_sanitized_data(
             model_index,
             self.tk_multi_loader.model_latestpublish.SgLatestPublishModel.PUBLISH_TYPE_NAME_ROLE,
         )
 
-        """Return formatted main and small text for the given publish folder."""
         main_text = "<b>%s</b>" % (sg_data.get("name") or "Unnamed")
 
         version = sg_data.get("version_number")
@@ -95,7 +148,24 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
     def format_list_folder(
         self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
     ) -> tuple[str, str]:
-        """Return formatted main and small text for the given publish item."""
+        """Get formatted texts for list view of the folder item at given index.
+
+        ``show_sub_items`` is whether the "Show items in subfolders" checkbox is
+        currently checked in the dialog.
+
+        .. code-block:: text
+
+            Layout of the list view in respect to returned (main_text, small_text):
+             -------------------------------------------------
+            | Thumbnail | main_text                           |
+            |           | small_text                          |
+             -------------------------------------------------
+             -------------------------------------------------
+            | Thumbnail | main_text                           |
+            |           | small_text                          |
+             -------------------------------------------------
+
+        """
         sg_data, field_value = self.tk_multi_loader.model_item_data.get_item_data(
             model_index
         )
@@ -154,7 +224,25 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
     def format_thumbnail_publish(
         self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
     ) -> tuple[str, str]:
-        """Return formatted header and body text for the given publish folder."""
+        """Get thumbnail view texts for the PublishedFile item at given index.
+
+        ``show_sub_items`` is whether the "Show items in subfolders" checkbox is
+        currently checked in the dialog.
+
+        .. code-block:: text
+
+            Layout of the thumbnail view in respect to returned (header_text, details_text):
+             --------------    --------------    --------------
+            |              |  |              |  |              |
+            |              |  |              |  |              |
+            |  Thumbnail   |  |  Thumbnail   |  |  Thumbnail   |
+            |              |  |              |  |              |
+            |______________|  |______________|  |______________|
+            | header_text  |  | header_text  |  | header_text  |
+            | details_text |  | details_text |  | details_text |
+             --------------    --------------    --------------
+
+        """
         sg_data = self.shotgun_model.get_sg_data(model_index)
         publish_type = self.shotgun_model.get_sanitized_data(
             model_index,
@@ -221,7 +309,25 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
     def format_thumbnail_folder(
         self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
     ) -> tuple[str, str]:
-        """Return formatted header and body text for the given publish item."""
+        """Get thumbnail view texts for the folder item at given index.
+
+        ``show_sub_items`` is whether the "Show items in subfolders" checkbox is
+        currently checked in the dialog.
+
+        .. code-block:: text
+
+            Layout of the thumbnail view in respect to returned (header_text, details_text):
+             --------------    --------------    --------------
+            |              |  |              |  |              |
+            |              |  |              |  |              |
+            |  Thumbnail   |  |  Thumbnail   |  |  Thumbnail   |
+            |              |  |              |  |              |
+            |______________|  |______________|  |______________|
+            | header_text  |  | header_text  |  | header_text  |
+            | details_text |  | details_text |  | details_text |
+             --------------    --------------    --------------
+
+        """
         sg_data, field_value = self.tk_multi_loader.model_item_data.get_item_data(
             model_index
         )

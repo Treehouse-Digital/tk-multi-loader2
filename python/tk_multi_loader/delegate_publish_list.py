@@ -68,12 +68,14 @@ class SgPublishListDelegate(PublishDelegate):
     def _format_folder_callback(
         self,
     ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
+        """Get hook callback method for formatting a folder item texts."""
         return self._format_hook.format_list_folder
 
     @property
     def _format_publish_callback(
         self,
     ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
+        """Get hook callback method for formatting a published file item texts."""
         return self._format_hook.format_list_publish
 
     def sizeHint(self, style_options, model_index):

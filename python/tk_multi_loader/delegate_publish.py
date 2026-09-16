@@ -3,6 +3,7 @@ from typing import Callable
 import sgtk
 from sgtk.platform.qt import QtCore, QtGui
 
+from .hooks.format_publishes import FormatPublishes
 from .model_latestpublish import SgLatestPublishModel
 
 # import the shotgun_model and view modules from the shotgun utils framework
@@ -125,9 +126,6 @@ class PublishDelegate(shotgun_view.EditSelectedWidgetDelegate):
         :param view: The view where this delegate is being used
         :param action_manager: Action manager instance
         """
-        # Local import to avoid circular dependency issues
-        from .hooks.format_publishes import FormatPublishes
-
         self._action_manager = action_manager
         self._view = view
         self._sub_items_mode = False
@@ -229,28 +227,30 @@ class PublishDelegate(shotgun_view.EditSelectedWidgetDelegate):
     def _format_folder_callback(
         self,
     ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
+        """Get hook callback method for formatting a folder item texts."""
         raise NotImplementedError
 
     @property
     def _format_publish_callback(
         self,
     ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
+        """Get hook callback method for formatting a published file item texts."""
         raise NotImplementedError
 
     def _format_folder(
         self, model_index: QtCore.QModelIndex, widget: PublishWidget
     ) -> None:
-        """Formats the associated widget as a folder item."""
-        header_text, details_text = self._format_folder_callback(
+        """Formats the associated widget for a folder item."""
+        upper_text, lower_text = self._format_folder_callback(
             model_index, show_sub_items=bool(self._sub_items_mode)
         )
-        widget.set_text(header_text, details_text)
+        widget.set_text(upper_text, lower_text)
 
     def _format_publish(
         self, model_index: QtCore.QModelIndex, widget: PublishWidget
     ) -> None:
-        """Formats the associated widget as a publish."""
-        header_text, details_text = self._format_publish_callback(
+        """Formats the associated widget for a PublishedFile item."""
+        upper_text, lower_text = self._format_publish_callback(
             model_index, show_sub_items=bool(self._sub_items_mode)
         )
-        widget.set_text(header_text, details_text)
+        widget.set_text(upper_text, lower_text)
