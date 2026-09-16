@@ -1,9 +1,7 @@
-from typing import Callable
-
 import sgtk
 from sgtk.platform.qt import QtCore, QtGui
 
-from .hooks.format_publishes import FormatPublishes
+from .hooks.format_publishes import BaseFormatPublishes
 from .model_latestpublish import SgLatestPublishModel
 
 # import the shotgun_model and view modules from the shotgun utils framework
@@ -133,7 +131,7 @@ class PublishDelegate(shotgun_view.EditSelectedWidgetDelegate):
         app: sgtk.platform.Application = sgtk.platform.current_bundle()
         self._format_hook = app.create_hook_instance(
             app.get_setting("format_publishes_hook"),
-            base_class=FormatPublishes,
+            base_class=BaseFormatPublishes,
         )
         shotgun_view.EditSelectedWidgetDelegate.__init__(self, view)
 
@@ -222,35 +220,3 @@ class PublishDelegate(shotgun_view.EditSelectedWidgetDelegate):
             self._format_folder(model_index, widget)
         else:
             self._format_publish(model_index, widget)
-
-    @property
-    def _format_folder_callback(
-        self,
-    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
-        """Get hook callback method for formatting a folder item texts."""
-        raise NotImplementedError
-
-    @property
-    def _format_publish_callback(
-        self,
-    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
-        """Get hook callback method for formatting a published file item texts."""
-        raise NotImplementedError
-
-    def _format_folder(
-        self, model_index: QtCore.QModelIndex, widget: PublishWidget
-    ) -> None:
-        """Formats the associated widget for a folder item."""
-        upper_text, lower_text = self._format_folder_callback(
-            model_index, show_sub_items=bool(self._sub_items_mode)
-        )
-        widget.set_text(upper_text, lower_text)
-
-    def _format_publish(
-        self, model_index: QtCore.QModelIndex, widget: PublishWidget
-    ) -> None:
-        """Formats the associated widget for a PublishedFile item."""
-        upper_text, lower_text = self._format_publish_callback(
-            model_index, show_sub_items=bool(self._sub_items_mode)
-        )
-        widget.set_text(upper_text, lower_text)

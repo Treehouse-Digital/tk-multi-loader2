@@ -42,6 +42,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
         self.thumb_delegate = thumb_cls(dummy_view, mock.MagicMock())
 
     def test_methods_exist(self):
+        """Ensure no internal API methods are missing."""
         assert callable(self.list_delegate._format_folder)
         assert callable(self.list_delegate._format_publish)
         assert callable(self.thumb_delegate._format_folder)

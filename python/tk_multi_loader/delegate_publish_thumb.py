@@ -8,8 +8,6 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
-from typing import Callable
-
 from sgtk.platform.qt import QtCore
 
 from .ui.widget_publish_thumb import Ui_PublishThumbWidget
@@ -66,19 +64,21 @@ class SgPublishThumbDelegate(PublishDelegate):
         """
         return PublishThumbWidget(parent)
 
-    @property
-    def _format_folder_callback(
-        self,
-    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
-        """Get hook callback method for formatting a folder item texts."""
-        return self._format_hook.format_thumbnail_folder
+    def _format_folder(
+        self, model_index: QtCore.QModelIndex, widget: PublishThumbWidget
+    ) -> None:
+        """Formats the associated widget for a folder item."""
+        self._format_hook.format_thumbnail_folder(
+            model_index, widget, show_sub_items=bool(self._sub_items_mode)
+        )
 
-    @property
-    def _format_publish_callback(
-        self,
-    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
-        """Get hook callback method for formatting a published file item texts."""
-        return self._format_hook.format_thumbnail_publish
+    def _format_publish(
+        self, model_index: QtCore.QModelIndex, widget: PublishThumbWidget
+    ) -> None:
+        """Formats the associated widget for a PublishedFile item."""
+        self._format_hook.format_thumbnail_publish(
+            model_index, widget, show_sub_items=bool(self._sub_items_mode)
+        )
 
     def sizeHint(self, style_options, model_index):
         """

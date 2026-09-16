@@ -21,14 +21,19 @@ running in e.g.:
 from __future__ import annotations
 
 import datetime
+from typing import TYPE_CHECKING
 
 import sgtk
 from sgtk.platform.qt import QtCore
 
-__all__ = ("FormatPublishes",)
+__all__ = ("BaseFormatPublishes",)
+
+if TYPE_CHECKING:
+    from tk_multi_loader.delegate_publish_list import PublishListWidget
+    from tk_multi_loader.delegate_publish_thumb import PublishThumbWidget
 
 
-class FormatPublishes(sgtk.get_hook_baseclass()):
+class BaseFormatPublishes(sgtk.get_hook_baseclass()):
     """Base hook for formatting.
 
     Uses the exact same code extracted from `tk-multi-loader v1.25.6
@@ -67,9 +72,13 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
         )
 
     def format_list_publish(
-        self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
-    ) -> tuple[str, str]:
-        """Get formatted texts for list view of the PublishedFile item at given index.
+        self,
+        model_index: QtCore.QModelIndex,
+        widget: PublishListWidget,
+        *,
+        show_sub_items: bool = False,
+    ) -> None:
+        """Format list view widget of the PublishedFile item at given index.
 
         ``show_sub_items`` is whether the "Show items in subfolders" checkbox is
         currently checked in the dialog.
@@ -143,12 +152,16 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
             author_str,
             date_str,
         )
-        return main_text, small_text
+        widget.set_text(main_text, small_text)
 
     def format_list_folder(
-        self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
-    ) -> tuple[str, str]:
-        """Get formatted texts for list view of the folder item at given index.
+        self,
+        model_index: QtCore.QModelIndex,
+        widget: PublishListWidget,
+        *,
+        show_sub_items: bool = False,
+    ) -> None:
+        """Format list view widget of the folder item at given index.
 
         ``show_sub_items`` is whether the "Show items in subfolders" checkbox is
         currently checked in the dialog.
@@ -219,12 +232,16 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
             )
             small_text = sg_data.get("description") or "No description given."
 
-        return main_text, small_text
+        widget.set_text(main_text, small_text)
 
     def format_thumbnail_publish(
-        self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
-    ) -> tuple[str, str]:
-        """Get thumbnail view texts for the PublishedFile item at given index.
+        self,
+        model_index: QtCore.QModelIndex,
+        widget: PublishThumbWidget,
+        *,
+        show_sub_items: bool = False,
+    ) -> None:
+        """Format thumbnail view widget for the PublishedFile item at given index.
 
         ``show_sub_items`` is whether the "Show items in subfolders" checkbox is
         currently checked in the dialog.
@@ -304,12 +321,16 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
             # Render
             details_text = publish_type
 
-        return header_text, details_text
+        widget.set_text(header_text, details_text)
 
     def format_thumbnail_folder(
-        self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
-    ) -> tuple[str, str]:
-        """Get thumbnail view texts for the folder item at given index.
+        self,
+        model_index: QtCore.QModelIndex,
+        widget: PublishThumbWidget,
+        *,
+        show_sub_items: bool = False,
+    ) -> None:
+        """Format thumbnail view widget for the folder item at given index.
 
         ``show_sub_items`` is whether the "Show items in subfolders" checkbox is
         currently checked in the dialog.
@@ -371,4 +392,4 @@ class FormatPublishes(sgtk.get_hook_baseclass()):
             # other value (e.g. intermediary non-entity link node like sg_asset_type)
             header_text = field_value
 
-        return header_text, details_text
+        widget.set_text(header_text, details_text)

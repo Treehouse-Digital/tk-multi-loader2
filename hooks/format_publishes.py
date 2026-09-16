@@ -4,37 +4,20 @@
 #
 # This work is provided "AS IS" and subject to the Shotgun Pipeline Toolkit
 # Source Code License included in this distribution package. See LICENSE.
+"""Hook for formatting the folder/PublishedFile item widgets in the loader.
+
+Here we only simply serve as a pass-through for the default formatting logic in
+``tk_multi_loader.hooks.format_publishes.BaseFormatPublishes``.
+
+It's up to the subclass to decide on which methods to override or extend
+
+"""
 
 import sgtk
 
-from sgtk.platform.qt import QtCore
-
 
 class FormatPublishes(sgtk.get_hook_baseclass()):
-    def format_list_publish(
-        self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
-    ) -> tuple[str, str]:
-        """Return formatted main and small text for the given publish folder."""
-        return super().format_list_publish(model_index, show_sub_items=show_sub_items)
+    """ "Simple pass through for the default, base formatting logic.
 
-    def format_list_folder(
-        self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
-    ) -> tuple[str, str]:
-        """Return formatted main and small text for the given publish item."""
-        return super().format_list_folder(model_index, show_sub_items=show_sub_items)
-
-    def format_thumbnail_publish(
-        self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
-    ) -> tuple[str, str]:
-        """Return formatted header and body text for the given publish folder."""
-        return super().format_thumbnail_publish(
-            model_index, show_sub_items=show_sub_items
-        )
-
-    def format_thumbnail_folder(
-        self, model_index: QtCore.QModelIndex, *, show_sub_items: bool = False
-    ) -> tuple[str, str]:
-        """Return formatted header and body text for the given publish item."""
-        return super().format_thumbnail_folder(
-            model_index, show_sub_items=show_sub_items
-        )
+    See ``tk_multi_loader.hooks.format_publishes.BaseFormatPublishes``.
+    """

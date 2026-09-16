@@ -9,8 +9,6 @@
 # not expressly granted therein are reserved by Shotgun Software Inc.
 
 
-from typing import Callable
-
 from sgtk.platform.qt import QtCore
 
 from .ui.widget_publish_list import Ui_PublishListWidget
@@ -64,19 +62,21 @@ class SgPublishListDelegate(PublishDelegate):
         """
         return PublishListWidget(parent)
 
-    @property
-    def _format_folder_callback(
-        self,
-    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
-        """Get hook callback method for formatting a folder item texts."""
-        return self._format_hook.format_list_folder
+    def _format_folder(
+        self, model_index: QtCore.QModelIndex, widget: PublishListWidget
+    ) -> None:
+        """Formats the associated widget for a folder item."""
+        self._format_hook.format_list_folder(
+            model_index, widget, show_sub_items=bool(self._sub_items_mode)
+        )
 
-    @property
-    def _format_publish_callback(
-        self,
-    ) -> Callable[[QtCore.QModelIndex, bool], tuple[str, str]]:
-        """Get hook callback method for formatting a published file item texts."""
-        return self._format_hook.format_list_publish
+    def _format_publish(
+        self, model_index: QtCore.QModelIndex, widget: PublishListWidget
+    ) -> None:
+        """Formats the associated widget for a PublishedFile item."""
+        self._format_hook.format_list_publish(
+            model_index, widget, show_sub_items=bool(self._sub_items_mode)
+        )
 
     def sizeHint(self, style_options, model_index):
         """
