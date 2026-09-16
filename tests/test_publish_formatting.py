@@ -18,13 +18,44 @@ Note:
 """
 
 import contextlib
+from typing import NamedTuple
+from types import ModuleType
 from unittest import mock
 
 from test_api import AppTestBase, setUpModule  # noqa
 
 
+class Binding(NamedTuple):
+    """Attributes to bind for ``mocked_model_item_data_widget``."""
+
+    delegate: object
+    shotgun_model: ModuleType
+    SgLatestPublishModel: type
+    model_item_data: ModuleType
+
+    @classmethod
+    def from_delegate_module(cls, delegate, module):
+        if hook := getattr(delegate, "_format_hook", None):
+            shotgun_model = hook.shotgun_model
+            SgLatestPublishModel = (
+                hook.tk_multi_loader.model_latestpublish.SgLatestPublishModel
+            )
+            model_item_data = hook.tk_multi_loader.model_item_data
+        else:
+            shotgun_model = module.shotgun_model
+            SgLatestPublishModel = module.SgLatestPublishModel
+            model_item_data = module.model_item_data
+
+        return cls(
+            delegate=delegate,
+            shotgun_model=shotgun_model,
+            SgLatestPublishModel=SgLatestPublishModel,
+            model_item_data=model_item_data,
+        )
+
+
 @contextlib.contextmanager
-def mocked_model_item_data_widget(hook, field_value):
+def mocked_model_item_data_widget(binding: Binding, field_value):
     mock_model_index = mock.MagicMock()
     mock_widget = mock.MagicMock()
     mock_widget.set_text = mock.MagicMock()
@@ -74,18 +105,17 @@ def mocked_model_item_data_widget(hook, field_value):
         "version_number": 2,
     }
 
-    original_get_sanitized_data = hook.shotgun_model.get_sanitized_data
-    model_cls = hook.tk_multi_loader.model_latestpublish.SgLatestPublishModel
+    original_get_sanitized_data = binding.shotgun_model.get_sanitized_data
 
     def mock_get_sanitized_data(model_index, role):
         return (
             pub_type_str
             if model_index is mock_model_index
-            and role == model_cls.PUBLISH_TYPE_NAME_ROLE
+            and role == binding.SgLatestPublishModel.PUBLISH_TYPE_NAME_ROLE
             else original_get_sanitized_data(model_index)
         )
 
-    original_get_sg_data = hook.shotgun_model.get_sg_data
+    original_get_sg_data = binding.shotgun_model.get_sg_data
 
     def mock_get_sg_data(model_index):
         return (
@@ -94,7 +124,7 @@ def mocked_model_item_data_widget(hook, field_value):
             else original_get_sg_data(model_index)
         )
 
-    original_get_item_data = hook.tk_multi_loader.model_item_data.get_item_data
+    original_get_item_data = binding.model_item_data.get_item_data
 
     def mock_get_item_data(model_index):
         return (
@@ -105,12 +135,12 @@ def mocked_model_item_data_widget(hook, field_value):
 
     with (
         mock.patch.object(
-            hook.tk_multi_loader.model_item_data,
+            binding.model_item_data,
             "get_item_data",
             mock_get_item_data,
         ),
         mock.patch.multiple(
-            hook.shotgun_model,
+            binding.shotgun_model,
             get_sg_data=mock_get_sg_data,
             get_sanitized_data=mock_get_sanitized_data,
         ),
@@ -123,7 +153,7 @@ def mocked_model_item_data_widget(hook, field_value):
 
 
 def check_delegate_text(
-    delegate: object,
+    binding: Binding,
     field_value: object,
     folder_main: str,
     folder_small: str,
@@ -132,24 +162,22 @@ def check_delegate_text(
     *,
     show_sub_items: bool = False,
 ) -> None:
-    with mock.patch.object(delegate, "_sub_items_mode", show_sub_items):
-        list_hook = delegate._format_hook
-
-        with mocked_model_item_data_widget(list_hook, field_value) as (
+    with mock.patch.object(binding.delegate, "_sub_items_mode", show_sub_items):
+        with mocked_model_item_data_widget(binding, field_value) as (
             model_index,
             mock_widget,
         ):
-            delegate._format_folder(model_index, mock_widget)
+            binding.delegate._format_folder(model_index, mock_widget)
 
         main_text, small_text = mock_widget.set_text.call_args.args
         assert main_text == folder_main
         assert small_text == folder_small
 
-        with mocked_model_item_data_widget(list_hook, field_value) as (
+        with mocked_model_item_data_widget(binding, field_value) as (
             model_index,
             mock_widget,
         ):
-            delegate._format_publish(model_index, mock_widget)
+            binding.delegate._format_publish(model_index, mock_widget)
 
         main_text, small_text = mock_widget.set_text.call_args.args
         assert main_text == publish_main
@@ -171,8 +199,16 @@ class TestDelegatesPublishFormatting(AppTestBase):
         self.QtGui = QtGui
         self.list_module = tk_multi_loader.delegate_publish_list
         self.thumb_module = tk_multi_loader.delegate_publish_thumb
+
         self.list_delegate = list_cls(dummy_view, mock.MagicMock())
         self.thumb_delegate = thumb_cls(dummy_view, mock.MagicMock())
+
+        self.list_binding = Binding.from_delegate_module(
+            self.list_delegate, self.list_module
+        )
+        self.thumb_binding = Binding.from_delegate_module(
+            self.thumb_delegate, self.thumb_module
+        )
 
     def test_methods_exist(self):
         """Ensure no internal API methods are missing."""
@@ -180,66 +216,6 @@ class TestDelegatesPublishFormatting(AppTestBase):
         assert callable(self.list_delegate._format_publish)
         assert callable(self.thumb_delegate._format_folder)
         assert callable(self.thumb_delegate._format_publish)
-
-    def _check_list(
-        self,
-        field_value: object,
-        folder_main: str,
-        folder_small: str,
-        publish_main: str,
-        publish_small: str,
-    ):
-        list_hook = self.list_delegate._format_hook
-
-        with mocked_model_item_data_widget(list_hook, field_value) as (
-            model_index,
-            mock_widget,
-        ):
-            self.list_delegate._format_folder(model_index, mock_widget)
-
-        main_text, small_text = mock_widget.set_text.call_args.args
-        assert main_text == folder_main
-        assert small_text == folder_small
-
-        with mocked_model_item_data_widget(list_hook, field_value) as (
-            model_index,
-            mock_widget,
-        ):
-            self.list_delegate._format_publish(model_index, mock_widget)
-
-        main_text, small_text = mock_widget.set_text.call_args.args
-        assert main_text == publish_main
-        assert small_text == publish_small
-
-    def _check_thumb(
-        self,
-        field_value: object,
-        folder_main: str,
-        folder_small: str,
-        publish_main: str,
-        publish_small: str,
-    ):
-        thumb_hook = self.thumb_delegate._format_hook
-
-        with mocked_model_item_data_widget(thumb_hook, field_value) as (
-            model_index,
-            mock_widget,
-        ):
-            self.thumb_delegate._format_folder(model_index, mock_widget)
-
-        main_text, small_text = mock_widget.set_text.call_args.args
-        assert main_text == folder_main
-        assert small_text == folder_small
-
-        with mocked_model_item_data_widget(thumb_hook, field_value) as (
-            model_index,
-            mock_widget,
-        ):
-            self.thumb_delegate._format_publish(model_index, mock_widget)
-
-        main_text, small_text = mock_widget.set_text.call_args.args
-        assert main_text == publish_main
-        assert small_text == publish_small
 
     def test_list_dict(self):
         field_value = {
@@ -251,7 +227,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
             f"<b>Version</b> <b style='color:#2C93E2'>{field_value['name']}</b>"
         )
         check_delegate_text(
-            self.list_delegate,
+            self.list_binding,
             field_value,
             folder_main,
             "",
@@ -260,7 +236,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
             show_sub_items=True,
         )
         check_delegate_text(
-            self.list_delegate,
+            self.list_binding,
             field_value,
             folder_main,
             "",
@@ -287,7 +263,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
             "<br>aaa_00010_F004_C003_0228F8_v000, aaa_00020_F004_C003_0228F8_v000"
         )
         check_delegate_text(
-            self.list_delegate,
+            self.list_binding,
             field_value,
             folder_main,
             "",
@@ -296,7 +272,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
             show_sub_items=True,
         )
         check_delegate_text(
-            self.list_delegate,
+            self.list_binding,
             field_value,
             folder_main,
             "",
@@ -309,7 +285,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
         field_value = [None, 123, "abc"]
         folder_main = "<b></b><br>None, 123, abc"
         check_delegate_text(
-            self.list_delegate,
+            self.list_binding,
             field_value,
             folder_main,
             "",
@@ -318,7 +294,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
             show_sub_items=True,
         )
         check_delegate_text(
-            self.list_delegate,
+            self.list_binding,
             field_value,
             folder_main,
             "",
@@ -334,7 +310,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
             "type": "Version",
         }
         check_delegate_text(
-            self.thumb_delegate,
+            self.thumb_binding,
             field_value,
             field_value["name"],
             field_value["type"],
@@ -343,7 +319,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
             show_sub_items=True,
         )
         check_delegate_text(
-            self.thumb_delegate,
+            self.thumb_binding,
             field_value,
             field_value["name"],
             field_value["type"],
@@ -367,7 +343,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
         ]
         folder_main = "aaa_00010_F004_C003_0228F8_v000, aaa_00020_F004_C003_0228F8_v000"
         check_delegate_text(
-            self.thumb_delegate,
+            self.thumb_binding,
             field_value,
             folder_main,
             "",
@@ -376,7 +352,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
             show_sub_items=True,
         )
         check_delegate_text(
-            self.thumb_delegate,
+            self.thumb_binding,
             field_value,
             folder_main,
             "",
@@ -389,7 +365,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
         field_value = [None, 123, "abc"]
         folder_main = "None, 123, abc"
         check_delegate_text(
-            self.thumb_delegate,
+            self.thumb_binding,
             field_value,
             folder_main,
             "",
@@ -398,7 +374,7 @@ class TestDelegatesPublishFormatting(AppTestBase):
             show_sub_items=True,
         )
         check_delegate_text(
-            self.thumb_delegate,
+            self.thumb_binding,
             field_value,
             folder_main,
             "",
