@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 These track the only functional differences between SG/upstream and our own fork.
 
 
+## [1.25.6-th.1.2.0] - 2026-09-17
+
+### Changed
+
+- config:entities: `filters` now support ID expansion for all context attributes
+  - Any string entirely matching `{context.<attribute>.id}` will be expanded to the corresponding context attribute's ID as integer.
+  - Prioritised over below `format(context=app.context)` expansion.
+- config:entities: `filters` and `entity_type` now expand `context` variable via Python string `format(context=app.context)`
+
+
 ## [1.25.6-th.1.1.0] - 2026-09-17
 
 ### Added

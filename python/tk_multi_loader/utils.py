@@ -295,7 +295,9 @@ def resolve_filters(filters, context: sgtk.Context | None = None):
     config or the app's info.yml. Supports complex filters as well. Filters should be passed in the following format:
     [[task_assignees, is, '{context.user}'],[sg_status_list, not_in, [fin,omt]]]
 
-    .. versionchanged::
+    .. versionchanged:: 1.25.6-th.1.2.0
+       Added context kwarg, expanded ID substitution and format using Python string
+       ``format(context=context)``
 
     :return: A List of filters for use with the shotgun api
     """

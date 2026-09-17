@@ -1775,6 +1775,10 @@ class AppDialog(QtGui.QWidget):
         """
         Create the model and proxy model required by a query type configuration setting.
 
+        .. versionchanged:: 1.25.6-th.1.2.0
+           Pass app context to `.resolve_filters` and expand ``entity_type`` string
+           using Python string ``format(context=context)``
+
         :param app: :class:`Application`, :class:`Engine` or :class:`Framework` bundle instance
                     associated with the loader.
         :param setting_dict: Configuration setting dictionary for a tab.
