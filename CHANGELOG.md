@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 These track the only functional differences between SG/upstream and our own fork.
 
 
+## [1.25.6-th.1.1.0] - 2026-09-17
+
+### Added
+
+- `format_publishes` hook for customizing the formatting of folder/publish items' widget
+    - Minimal for our own use, not fully test covered or documented for PR back to SG
+
+### Fixed
+
+- Silenced unnecessary INFO log messages in `filter_publishes` hook.
+
+
 ## [1.25.6-th.1.0.1] - 2026-05-26
 
 ### Fixed
