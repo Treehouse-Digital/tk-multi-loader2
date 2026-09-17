@@ -16,6 +16,10 @@ These track the only functional differences between SG/upstream and our own fork
 - `format_publishes` hook for customizing the formatting of folder/publish items' widget
     - Minimal for our own use, not fully test covered or documented for PR back to SG
 
+### Changed
+
+- Manual tag-to-release workflow to automatically create GitHub releases from `CHANGELOG.md` versions.
+
 ### Fixed
 
 - Silenced unnecessary INFO log messages in `filter_publishes` hook.
