@@ -335,7 +335,7 @@ def resolve_filters(filters, context: sgtk.Context | None = None):
         if isinstance(raw_filter, dict):
             resolved_filter = {
                 "filter_operator": raw_filter["filter_operator"],
-"filters": resolve_filters(raw_filter["filters"], context=context),
+                "filters": resolve_filters(raw_filter["filters"], context=context),
             }
         else:
             resolved_filter = [
