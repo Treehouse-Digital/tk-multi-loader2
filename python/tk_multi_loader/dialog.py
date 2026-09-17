@@ -1780,10 +1780,16 @@ class AppDialog(QtGui.QWidget):
         :param setting_dict: Configuration setting dictionary for a tab.
         :return: Created `(model, proxy model)`.
         """
+        context: sgtk.Context = app.context
+        app.logger.warning(f"{context = }")
 
-        # Resolve any magic tokens in the filters.
-        resolved_filters = resolve_filters(setting_dict["filters"])
-        setting_dict["filters"] = resolved_filters
+        # Resolve any magic tokens in the filters and entity type.
+        setting_dict["filters"] = resolve_filters(
+            setting_dict["filters"], context=context
+        )
+        setting_dict["entity_type"] = str(setting_dict["entity_type"]).format(
+            context=context
+        )
 
         # Construct the query model.
         model = SgEntityModel(

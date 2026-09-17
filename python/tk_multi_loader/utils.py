@@ -7,6 +7,8 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+from __future__ import annotations
+import re
 
 import sgtk
 from sgtk.platform.qt import QtCore, QtGui
@@ -284,7 +286,7 @@ def filter_publishes(app, sg_data_list):
     return sg_data_list
 
 
-def resolve_filters(filters):
+def resolve_filters(filters, context: sgtk.Context | None = None):
     """
     When passed a list of filters, it will resolve strings found in the filters using the context.
     For example: '{context.user}' could get resolved to {'type': 'HumanUser', 'id': 86, 'name': 'Philip Scadding'}
@@ -293,35 +295,29 @@ def resolve_filters(filters):
     config or the app's info.yml. Supports complex filters as well. Filters should be passed in the following format:
     [[task_assignees, is, '{context.user}'],[sg_status_list, not_in, [fin,omt]]]
 
+    .. versionchanged::
+
     :return: A List of filters for use with the shotgun api
     """
-    app = sgtk.platform.current_bundle()
+    context = context or sgtk.platform.current_bundle().context
+    result = []
+    for raw_filter in filters:
 
-    resolved_filters = []
-    for filter in filters:
-        if type(filter) is dict:
+        if isinstance(raw_filter, dict):
             resolved_filter = {
-                "filter_operator": filter["filter_operator"],
-                "filters": resolve_filters(filter["filters"]),
+                "filter_operator": raw_filter["filter_operator"],
+                "filters": resolve_filters(raw_filter["filters"]),
             }
         else:
             resolved_filter = []
-            for field in filter:
-                if field == "{context.entity}":
-                    field = app.context.entity
-                elif field == "{context.step}":
-                    field = app.context.step
-                elif field == "{context.project}":
-                    field = app.context.project
-                elif field == "{context.project.id}":
-                    if app.context.project:
-                        field = app.context.project.get("id")
-                    else:
-                        field = None
-                elif field == "{context.task}":
-                    field = app.context.task
-                elif field == "{context.user}":
-                    field = app.context.user
-                resolved_filter.append(field)
-        resolved_filters.append(resolved_filter)
-    return resolved_filters
+            for raw_value in raw_filter:
+                if not isinstance(raw_value, str):
+                    value = raw_value
+                elif found := re.match(r"\{context\.(\w+)\.id\}$", raw_value):
+                    value = (getattr(context, found[1], None) or {}).get("id")
+                else:
+                    value = raw_value.format(context=context)
+                resolved_filter.append(value)
+
+        result.append(resolved_filter)
+    return result
