@@ -18,7 +18,7 @@ import sgtk
 
 
 class FormatPublishes(sgtk.get_hook_baseclass()):
-    """ "Simple pass through for the default, base formatting logic.
+    """Simple pass through for the default, base formatting logic.
 
     See ``tk_multi_loader.hooks.format_publishes.BaseFormatPublishes``.
     """

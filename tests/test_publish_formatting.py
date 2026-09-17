@@ -138,7 +138,7 @@ def mocked_model_item_data_widget(params: Params):
                 str,
             )
             and pub_type_str
-            else original_get_sanitized_data(model_index)
+            else original_get_sanitized_data(model_index, role)
         )
 
     def mock_get_sg_data(model_index):
