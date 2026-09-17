@@ -39,6 +39,14 @@ configuration:
         default_value: "{self}/{engine_name}_actions.py"
         description: Hook which contains all methods for action management.
 
+    format_publishes_hook:
+        type: hook
+        default_value: "{self}/format_publishes.py"
+        description: |-
+            Hook for formatting the folder/publish items' widget (delegates)
+
+            New in v1.25.6-th.1.1.0
+
     filter_publishes_hook:
         type: hook
         default_value: "{self}/filter_publishes.py"

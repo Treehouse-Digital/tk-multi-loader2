@@ -1,7 +1,7 @@
 import sgtk
-
 from sgtk.platform.qt import QtCore, QtGui
 
+from .hooks.format_publishes import BaseFormatPublishes
 from .model_latestpublish import SgLatestPublishModel
 
 # import the shotgun_model and view modules from the shotgun utils framework
@@ -127,6 +127,12 @@ class PublishDelegate(shotgun_view.EditSelectedWidgetDelegate):
         self._action_manager = action_manager
         self._view = view
         self._sub_items_mode = False
+
+        app: sgtk.platform.Application = sgtk.platform.current_bundle()
+        self._format_hook = app.create_hook_instance(
+            app.get_setting("format_publishes_hook"),
+            base_class=BaseFormatPublishes,
+        )
         shotgun_view.EditSelectedWidgetDelegate.__init__(self, view)
 
     def set_sub_items_mode(self, enabled):
