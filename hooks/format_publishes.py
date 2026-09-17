@@ -6,11 +6,12 @@
 # Source Code License included in this distribution package. See LICENSE.
 """Hook for formatting the folder/PublishedFile item widgets in the loader.
 
+.. versionadded:: 1.25.6-th.1.1.0
+
 Here we only simply serve as a pass-through for the default formatting logic in
 ``tk_multi_loader.hooks.format_publishes.BaseFormatPublishes``.
 
-It's up to the subclass to decide on which methods to override or extend
-
+It's up to the subclass to decide on which methods to override or extend.
 """
 
 import sgtk

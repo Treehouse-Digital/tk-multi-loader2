@@ -6,6 +6,8 @@
 # Source Code License included in this distribution package. See LICENSE.
 """Base hook for formatting publishes in the loader.
 
+.. versionadded:: 1.25.6-th.1.1.0
+
 This is called by the various delegate classes to format the text used for the
 list/thumbnail views.
 
@@ -51,7 +53,6 @@ class BaseFormatPublishes(sgtk.get_hook_baseclass()):
       `tk-framework-shotgunutils.shotgun_model
       <https://developers.shotgridsoftware.com/tk-framework-shotgunutils/shotgun_model.html>`_
     - (instance-level) ``tk_multi_loader``, imported ``tk_multi_loader`` module
-
 
     """
 

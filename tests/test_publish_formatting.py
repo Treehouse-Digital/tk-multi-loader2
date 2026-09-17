@@ -7,6 +7,8 @@
 
 """Unit test the formatted text of ``SgPublish*Delegate._format_*()``.
 
+.. versionadded:: 1.25.6-th.1.1.0
+
 This is to ensure we have a reference output to check future refactoring against v1.25.6
 so lots of values are baked into the test data.
 
@@ -15,6 +17,8 @@ Note:
     into this module's namespace. Also more than 1 _fork_ in sub-classing/descendants
     per module will break the setup/teardown.
 
+`.Binding` class is used to allow this file to work even when checked out as-is in
+v1.25.6
 """
 
 import contextlib

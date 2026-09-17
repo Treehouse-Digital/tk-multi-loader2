@@ -43,9 +43,9 @@ configuration:
         type: hook
         default_value: "{self}/format_publishes.py"
         description: |-
-            Hook for formatting the text used in the publish item (delegates)
+            Hook for formatting the folder/publish items' widget (delegates)
 
-            New in <VERSION TBA>
+            New in v1.25.6-th.1.1.0
 
     filter_publishes_hook:
         type: hook
