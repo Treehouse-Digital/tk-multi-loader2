@@ -1785,7 +1785,6 @@ class AppDialog(QtGui.QWidget):
         :return: Created `(model, proxy model)`.
         """
         context: sgtk.Context = app.context
-        app.logger.warning(f"{context = }")
 
         # Resolve any magic tokens in the filters and entity type.
         setting_dict["filters"] = resolve_filters(

@@ -8,10 +8,38 @@
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
 from __future__ import annotations
-import re
+import string
+from typing import Any
 
 import sgtk
 from sgtk.platform.qt import QtCore, QtGui
+
+
+class ValueFormatter(string.Formatter):
+    """Extend to format raw values for entity configuration ``filters``.
+
+    .. versionadded:: 1.25.6-th.1.2.0
+    """
+
+    def format(self, format_string, /, *args, **kwargs) -> Any:
+        """Extend to return field value if it's the only field in the format string.
+
+        Otherwise, perform standard string formatting. Also returns input
+        ``format_string`` as-is if it's not a string.
+        """
+        result = format_string
+        if isinstance(format_string, str):
+            parsed = list(self.parse(format_string))
+            if len(parsed) != 1:
+                result = super().format(format_string, *args, **kwargs)
+            else:
+                literal_text, field_name, format_spec, conversion = parsed[0]
+                if field_name and not (literal_text or format_spec or conversion):
+                    result = self.get_field(field_name, args, kwargs)[0]
+        return result
+
+
+VALUE_FORMATTER = ValueFormatter()
 
 
 class ResizeEventFilter(QtCore.QObject):
@@ -304,22 +332,15 @@ def resolve_filters(filters, context: sgtk.Context | None = None):
     context = context or sgtk.platform.current_bundle().context
     result = []
     for raw_filter in filters:
-
         if isinstance(raw_filter, dict):
             resolved_filter = {
                 "filter_operator": raw_filter["filter_operator"],
                 "filters": resolve_filters(raw_filter["filters"]),
             }
         else:
-            resolved_filter = []
-            for raw_value in raw_filter:
-                if not isinstance(raw_value, str):
-                    value = raw_value
-                elif found := re.match(r"\{context\.(\w+)\.id\}$", raw_value):
-                    value = (getattr(context, found[1], None) or {}).get("id")
-                else:
-                    value = raw_value.format(context=context)
-                resolved_filter.append(value)
-
+            resolved_filter = [
+                VALUE_FORMATTER.format(raw_value, context=context)
+                for raw_value in raw_filter
+            ]
         result.append(resolved_filter)
     return result
