@@ -22,12 +22,17 @@ class ValueFormatter(string.Formatter):
     """
 
     def format(self, format_string, /, *args, **kwargs) -> Any:
-        """Extend to return field value if it's the only field in the format string.
+        """Extend to return field's value if it's the only "bare" field to format.
 
         Otherwise, perform standard string formatting. Also returns input
         ``format_string`` as-is if it's not a string.
         """
         result = format_string
+
+        # Special case for the pre-1.25.6-th.1.2.0 style project ID context variable
+        if format_string == "{context.project.id}":
+            format_string = "{context.project[id]}"
+
         if isinstance(format_string, str):
             parsed = list(self.parse(format_string))
             if len(parsed) != 1:
@@ -319,13 +324,17 @@ def resolve_filters(filters, context: sgtk.Context | None = None):
     When passed a list of filters, it will resolve strings found in the filters using the context.
     For example: '{context.user}' could get resolved to {'type': 'HumanUser', 'id': 86, 'name': 'Philip Scadding'}
 
+    .. versionchanged:: 1.25.6-th.1.2.0
+       Added context kwarg, expanded substitution and format using Python string
+       ``VALUE_FORMATTER.format(context=context)``.
+
+       This allows for ``"{context.user[name]}"`` or ``"{context.entity[type]}"``
+       expressions. A special compatibility case is kept for ``"{context.project.id}"``
+       usages, which should ideally now be changed to ``"{context.project[id]}"``.
+
     :param filters: A list of filters that has usually be defined by the user or by default in the environment yml
     config or the app's info.yml. Supports complex filters as well. Filters should be passed in the following format:
     [[task_assignees, is, '{context.user}'],[sg_status_list, not_in, [fin,omt]]]
-
-    .. versionchanged:: 1.25.6-th.1.2.0
-       Added context kwarg, expanded ID substitution and format using Python string
-       ``format(context=context)``
 
     :return: A List of filters for use with the shotgun api
     """

@@ -14,7 +14,7 @@ These track the only functional differences between SG/upstream and our own fork
 ### Changed
 
 - config:entities: `filters` and `entity_type` now expand `context` variable via Python string `format(context=app.context)`
-  - Any string entirely matching `{context.*}`, it will be expanded to the expression's context value
+  - Any string entirely matching `{context.*}` it will be expanded to the expression's context value
 
 
 ## [1.25.6-th.1.1.0] - 2026-09-17
