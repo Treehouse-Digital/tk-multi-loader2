@@ -22,15 +22,20 @@ v1.25.6
 """
 
 import contextlib
+import time
 from typing import NamedTuple
 from types import ModuleType
 from unittest import mock
 
 from test_api import AppTestBase, setUpModule  # noqa
 
+DEFAULT_CREATED_AT_VALUE = 1425378837.0
+DEFAULT_CREATED_AT_TEXT = time.strftime(
+    "%Y-%m-%d %H:%M", time.localtime(DEFAULT_CREATED_AT_VALUE)
+)
 DEFAULT_SG_DATA = {
     "code": "aaa_00010_F004_C003_0228F8_v000.%04d.dpx",
-    "created_at": 1425378837.0,
+    "created_at": DEFAULT_CREATED_AT_VALUE,
     "created_by": {"id": 42, "name": "Manne Ohrstrom", "type": "HumanUser"},
     "created_by.HumanUser.image": "https://...",
     "description": "testing testing, 1,2,3",
@@ -250,8 +255,6 @@ class TestDelegatesPublishFormatting(AppTestBase):
                 assert small_text == publish_small
 
     def test_list_delegate_dict(self):
-        # list test results seems to expect the same, publish item small text
-        publish_small = "<span style='color:#2C93E2'>Flame Render</span> by Manne Ohrstrom at 2015-03-03 10:33"
         field_value = {
             "id": 6697,
             "name": "aaa_00010_F004_C003_0228F8_v000",
@@ -264,6 +267,8 @@ class TestDelegatesPublishFormatting(AppTestBase):
             field_value,
         )
 
+        # list test results seems to expect the same, publish item small text
+        publish_small = f"<span style='color:#2C93E2'>Flame Render</span> by Manne Ohrstrom at {DEFAULT_CREATED_AT_TEXT}"
         folder_main = (
             f"<b>Version</b> <b style='color:#2C93E2'>{field_value['name']}</b>"
         )
@@ -285,8 +290,6 @@ class TestDelegatesPublishFormatting(AppTestBase):
         )
 
     def test_list_delegate_list_of_entities(self):
-        # list test results seems to expect the same, publish item small text
-        publish_small = "<span style='color:#2C93E2'>Flame Render</span> by Manne Ohrstrom at 2015-03-03 10:33"
         field_value = [
             {"id": 6697, "name": "aaa_00010_F004_C003_0228F8_v000", "type": "Version"},
             {
@@ -301,6 +304,8 @@ class TestDelegatesPublishFormatting(AppTestBase):
             DEFAULT_SG_DATA,
             field_value,
         )
+        # list test results seems to expect the same, publish item small text
+        publish_small = f"<span style='color:#2C93E2'>Flame Render</span> by Manne Ohrstrom at {DEFAULT_CREATED_AT_TEXT}"
         folder_main = (
             "<b>Version</b>"
             "<br>aaa_00010_F004_C003_0228F8_v000, aaa_00020_F004_C003_0228F8_v000"
@@ -323,8 +328,6 @@ class TestDelegatesPublishFormatting(AppTestBase):
         )
 
     def test_list_delegate_list_of_values(self):
-        # list test results seems to expect the same, publish item small text
-        publish_small = "<span style='color:#2C93E2'>Flame Render</span> by Manne Ohrstrom at 2015-03-03 10:33"
         params = Params(
             self.list_delegate,
             self.list_binding,
@@ -332,6 +335,8 @@ class TestDelegatesPublishFormatting(AppTestBase):
             [None, 123, "abc"],
         )
 
+        # list test results seems to expect the same, publish item small text
+        publish_small = f"<span style='color:#2C93E2'>Flame Render</span> by Manne Ohrstrom at {DEFAULT_CREATED_AT_TEXT}"
         folder_main = "<b></b><br>None, 123, abc"
         self._check_delegate_text(
             params,
