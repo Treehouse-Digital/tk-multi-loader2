@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 These track the only functional differences between SG/upstream and our own fork.
 
 
+## [1.25.6-th.1.2.0] - 2026-09-17
+
+### Changed
+
+- config:entities: `filters` and `entity_type` now expand `context` variable via Python string `format(context=app.context)`
+  - Any string entirely matching `{context.*}` without formatting/conversion specs, then it will be expanded to the expression's context value
+
+
 ## [1.25.6-th.1.1.0] - 2026-09-17
 
 ### Added

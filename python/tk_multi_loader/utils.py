@@ -7,9 +7,44 @@
 # By accessing, using, copying or modifying this work you indicate your
 # agreement to the Shotgun Pipeline Toolkit Source Code License. All rights
 # not expressly granted therein are reserved by Shotgun Software Inc.
+from __future__ import annotations
+import string
+from typing import Any
 
 import sgtk
 from sgtk.platform.qt import QtCore, QtGui
+
+
+class ValueFormatter(string.Formatter):
+    """Extend to format raw values for entity configuration ``filters``.
+
+    .. versionadded:: 1.25.6-th.1.2.0
+    """
+
+    def format(self, format_string, /, *args, **kwargs) -> Any:
+        """Extend to return field's value if it's the only "bare" field to format.
+
+        Otherwise, perform standard string formatting. Also returns input
+        ``format_string`` as-is if it's not a string.
+        """
+        result = format_string
+
+        # Special case for the pre-1.25.6-th.1.2.0 style project ID context variable
+        if format_string == "{context.project.id}":
+            format_string = "{context.project[id]}"
+
+        if isinstance(format_string, str):
+            parsed = list(self.parse(format_string))
+            if len(parsed) != 1:
+                result = super().format(format_string, *args, **kwargs)
+            else:
+                literal_text, field_name, format_spec, conversion = parsed[0]
+                if field_name and not (literal_text or format_spec or conversion):
+                    result = self.get_field(field_name, args, kwargs)[0]
+        return result
+
+
+VALUE_FORMATTER = ValueFormatter()
 
 
 class ResizeEventFilter(QtCore.QObject):
@@ -284,10 +319,18 @@ def filter_publishes(app, sg_data_list):
     return sg_data_list
 
 
-def resolve_filters(filters):
+def resolve_filters(filters, context: sgtk.Context | None = None):
     """
     When passed a list of filters, it will resolve strings found in the filters using the context.
     For example: '{context.user}' could get resolved to {'type': 'HumanUser', 'id': 86, 'name': 'Philip Scadding'}
+
+    .. versionchanged:: 1.25.6-th.1.2.0
+       Added context kwarg, expanded substitution and format using Python string
+       ``VALUE_FORMATTER.format(context=context)``.
+
+       This allows for ``"{context.user[name]}"`` or ``"{context.entity[type]}"``
+       expressions. A special compatibility case is kept for ``"{context.project.id}"``
+       usages, which should ideally now be changed to ``"{context.project[id]}"``.
 
     :param filters: A list of filters that has usually be defined by the user or by default in the environment yml
     config or the app's info.yml. Supports complex filters as well. Filters should be passed in the following format:
@@ -295,33 +338,18 @@ def resolve_filters(filters):
 
     :return: A List of filters for use with the shotgun api
     """
-    app = sgtk.platform.current_bundle()
-
-    resolved_filters = []
-    for filter in filters:
-        if type(filter) is dict:
+    context = context or sgtk.platform.current_bundle().context
+    result = []
+    for raw_filter in filters:
+        if isinstance(raw_filter, dict):
             resolved_filter = {
-                "filter_operator": filter["filter_operator"],
-                "filters": resolve_filters(filter["filters"]),
+                "filter_operator": raw_filter["filter_operator"],
+                "filters": resolve_filters(raw_filter["filters"], context=context),
             }
         else:
-            resolved_filter = []
-            for field in filter:
-                if field == "{context.entity}":
-                    field = app.context.entity
-                elif field == "{context.step}":
-                    field = app.context.step
-                elif field == "{context.project}":
-                    field = app.context.project
-                elif field == "{context.project.id}":
-                    if app.context.project:
-                        field = app.context.project.get("id")
-                    else:
-                        field = None
-                elif field == "{context.task}":
-                    field = app.context.task
-                elif field == "{context.user}":
-                    field = app.context.user
-                resolved_filter.append(field)
-        resolved_filters.append(resolved_filter)
-    return resolved_filters
+            resolved_filter = [
+                VALUE_FORMATTER.format(raw_value, context=context)
+                for raw_value in raw_filter
+            ]
+        result.append(resolved_filter)
+    return result

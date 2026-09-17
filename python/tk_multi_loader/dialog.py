@@ -1775,15 +1775,24 @@ class AppDialog(QtGui.QWidget):
         """
         Create the model and proxy model required by a query type configuration setting.
 
+        .. versionchanged:: 1.25.6-th.1.2.0
+           Pass app context to `.resolve_filters` and expand ``entity_type`` string
+           using Python string ``format(context=context)``
+
         :param app: :class:`Application`, :class:`Engine` or :class:`Framework` bundle instance
                     associated with the loader.
         :param setting_dict: Configuration setting dictionary for a tab.
         :return: Created `(model, proxy model)`.
         """
+        context: sgtk.Context = app.context
 
-        # Resolve any magic tokens in the filters.
-        resolved_filters = resolve_filters(setting_dict["filters"])
-        setting_dict["filters"] = resolved_filters
+        # Resolve any magic tokens in the filters and entity type.
+        setting_dict["filters"] = resolve_filters(
+            setting_dict["filters"], context=context
+        )
+        setting_dict["entity_type"] = str(setting_dict["entity_type"]).format(
+            context=context
+        )
 
         # Construct the query model.
         model = SgEntityModel(
